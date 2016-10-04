@@ -28,24 +28,20 @@ import java.io.PrintStream;
 
 @SpringBootApplication
 public class FilesIntegrationApplication {
-
-    @Configuration
-    public static class FtpConfig {
-
-        @Bean
-        DefaultFtpSessionFactory ftpFileSessionFactory(
-                @Value("${ftp.port:2121}") int port,
-                @Value("${ftp.username:jlong}") String username,
-                @Value("${ftp.password:spring}") String pw) {
-            DefaultFtpSessionFactory ftpSessionFactory = new DefaultFtpSessionFactory();
-            ftpSessionFactory.setPort(port);
-            ftpSessionFactory.setPassword(pw);
-            ftpSessionFactory.setUsername(username);
-            return ftpSessionFactory;
-        }
-    }
-
+    
     private String ascii = "ascii";
+
+    @Bean
+    DefaultFtpSessionFactory ftpFileSessionFactory(
+            @Value("${ftp.port:2121}") int port,
+            @Value("${ftp.username:jlong}") String username,
+            @Value("${ftp.password:spring}") String pw) {
+        DefaultFtpSessionFactory ftpSessionFactory = new DefaultFtpSessionFactory();
+        ftpSessionFactory.setPort(port);
+        ftpSessionFactory.setPassword(pw);
+        ftpSessionFactory.setUsername(username);
+        return ftpSessionFactory;
+    }
 
     @Bean
     Exchange exchange() {
@@ -115,9 +111,7 @@ public class FilesIntegrationApplication {
                         })
                 )
                 .get();
-
     }
-
 
     @Bean
     MessageChannel asciiProcessors() {
