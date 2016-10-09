@@ -92,8 +92,8 @@ class SampleDataCLR implements CommandLineRunner {
         Stream.of("Stephane Maldini", "Arjen Poutsma", "Rossen Stoyanchev",
                 "Sebastien Deleuze", "Josh Long").forEach(name ->
                 personRepository.save(new Person(name, new Random().nextInt(100))));
-
         personRepository.findAll().forEach(System.out::println);
+        personRepository.deleteAll();
     }
 }
 
