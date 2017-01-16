@@ -29,4 +29,6 @@ public interface CarMapper {
 
 	@Delete("delete from car")
 	void deleteAll();
+
+	Collection<Car> search(@Param("model") String model, @Param("year") int year);
 }

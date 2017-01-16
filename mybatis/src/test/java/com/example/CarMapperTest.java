@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @SpringBootTest
@@ -16,6 +17,8 @@ import java.util.List;
 public class CarMapperTest {
 
 	private List<Car> cars;
+	private Car focus = new Car("Focus", 2004, null);
+	private Car civic = new Car("Civic", 1984, null);
 
 	@Autowired
 	private CarMapper carMapper;
@@ -24,11 +27,7 @@ public class CarMapperTest {
 	public void before() throws Exception {
 
 		this.carMapper.deleteAll();
-
-		this.cars = Arrays.asList(
-				new Car("Focus", 2004, null),
-				new Car("Civic", 1984, null));
-
+		this.cars = Arrays.asList(focus, civic);
 		this.cars.forEach(carMapper::insert);
 	}
 
@@ -49,6 +48,14 @@ public class CarMapperTest {
 		Car car = new Car("Accord", 2010, null);
 		this.carMapper.insert(car);
 		Assert.assertNotNull(car.getId());
+	}
+
+	@Test
+	public void test_search() throws Exception {
+		Collection<Car> cars = this.carMapper.search(civic.getModel(), 0);
+		Assert.assertTrue(cars.size() == 1);
+		Assert.assertEquals(cars.iterator().next().getId(), this.civic.getId());
+		Assert.assertEquals(this.cars.size(), this.carMapper.search(null, 0).size());
 	}
 
 	@Test
