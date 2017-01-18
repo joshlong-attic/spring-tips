@@ -68,19 +68,23 @@ class CustomerRepository {
 	}
 
 	public Collection<CustomerDTO> selectAll() {
-		Map<Record, Result<Record>> recordResultMap = dslContext
-				.select()
-				.from(CUSTOMER).leftJoin(PRODUCT).on(PRODUCT.CUSTOMER_ID.eq(CUSTOMER.ID))
-				.orderBy(CUSTOMER.ID.asc())
-				.fetch()
-				.intoGroups(CUSTOMER.fields(CUSTOMER.ID));
+		Map<Record, Result<Record>> recordResultMap =
+				dslContext
+						.select()
+						.from(CUSTOMER).leftJoin(PRODUCT).on(PRODUCT.CUSTOMER_ID.eq(CUSTOMER.ID))
+						.orderBy(CUSTOMER.ID.asc())
+						.fetch()
+						.intoGroups(CUSTOMER.fields(CUSTOMER.ID));
 
-		return recordResultMap.values().stream().map(r -> {
-			List<ProductDTO> products = r.sortAsc(PRODUCT.ID).into(ProductDTO.class).stream().filter(p -> p.getId() != null).collect(Collectors.toList());
-			CustomerDTO customerDTO = r.into(CUSTOMER.ID, CUSTOMER.EMAIL).get(0).into(CustomerDTO.class);
-			customerDTO.getProducts().addAll(products);
-			return customerDTO;
-		}).collect(Collectors.toList());
+		return recordResultMap
+				.values()
+				.stream()
+				.map(r -> {
+					List<ProductDTO> products = r.sortAsc(PRODUCT.ID).into(ProductDTO.class).stream().filter(p -> p.getId() != null).collect(Collectors.toList());
+					CustomerDTO customerDTO = r.into(CUSTOMER.ID, CUSTOMER.EMAIL).get(0).into(CustomerDTO.class);
+					customerDTO.getProducts().addAll(products);
+					return customerDTO;
+				}).collect(Collectors.toList());
 	}
 
 }
