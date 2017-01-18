@@ -1,19 +1,22 @@
 package com.example;
 
-import com.example.jooq.tables.Customer;
-import com.example.jooq.tables.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.jooq.DSLContext;
-import org.jooq.Record2;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.example.jooq.tables.Customer.CUSTOMER;
+import static com.example.jooq.tables.Product.PRODUCT;
 
 @SpringBootApplication
 public class JooqApplication implements CommandLineRunner {
@@ -65,26 +68,21 @@ class CustomerRepository {
 	}
 
 	public Collection<CustomerDTO> selectAll() {
-
-		Map<Long, CustomerDTO> customerDTOMap = new HashMap<>();
-
-		this.dslContext
+		Map<Record, Result<Record>> recordResultMap = dslContext
 				.select()
-				.from(Customer.CUSTOMER)
-				.leftJoin(Product.PRODUCT).on(Customer.CUSTOMER.ID.eq(Product.PRODUCT.CUSTOMER_ID))
-				.forEach(record -> {
-					CustomerDTO customerDTO = record.into(Customer.CUSTOMER.ID, Customer.CUSTOMER.EMAIL).into(CustomerDTO.class);
-					customerDTOMap.putIfAbsent(customerDTO.getId(), customerDTO);
+				.from(CUSTOMER).leftJoin(PRODUCT).on(PRODUCT.CUSTOMER_ID.eq(CUSTOMER.ID))
+				.orderBy(CUSTOMER.ID.asc())
+				.fetch()
+				.intoGroups(CUSTOMER.fields(CUSTOMER.ID));
 
-					// products
-					Set<ProductDTO> products = customerDTOMap.get(customerDTO.getId()).getProducts();
-					Optional.ofNullable(record.into(Product.PRODUCT.ID).value1()).ifPresent(productId -> {
-						Record2<Long, String> record2 = record.into(Product.PRODUCT.ID, Product.PRODUCT.SKU);
-						ProductDTO productDTO = new ProductDTO(customerDTO, record2.value2(), record2.value1());
-						products.add(productDTO);
-					});
-				});
-		return customerDTOMap.values();
+		Collection<Result<Record>> values = recordResultMap.values();
+
+		return values.stream().map(r -> {
+			List<ProductDTO> products = r.sortAsc(PRODUCT.ID).into(ProductDTO.class).stream().filter(p -> p.getId() != null).collect(Collectors.toList());
+			CustomerDTO customerDTO = r.into(CUSTOMER.ID, CUSTOMER.EMAIL).get(0).into(CustomerDTO.class);
+			customerDTO.getProducts().addAll(products);
+			return customerDTO;
+		}).collect(Collectors.toList());
 	}
 
 }
