@@ -49,9 +49,9 @@
     </dependencies>
 
 
+    <!---->
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -69,10 +69,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!--
-                Spring Boot
-            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -145,6 +141,8 @@
             </build>
         </profile>
     </profiles>
+
+    <!---->
 
 
 </project>
