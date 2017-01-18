@@ -75,9 +75,7 @@ class CustomerRepository {
 				.fetch()
 				.intoGroups(CUSTOMER.fields(CUSTOMER.ID));
 
-		Collection<Result<Record>> values = recordResultMap.values();
-
-		return values.stream().map(r -> {
+		return recordResultMap.values().stream().map(r -> {
 			List<ProductDTO> products = r.sortAsc(PRODUCT.ID).into(ProductDTO.class).stream().filter(p -> p.getId() != null).collect(Collectors.toList());
 			CustomerDTO customerDTO = r.into(CUSTOMER.ID, CUSTOMER.EMAIL).get(0).into(CustomerDTO.class);
 			customerDTO.getProducts().addAll(products);
