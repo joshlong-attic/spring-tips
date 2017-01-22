@@ -65,12 +65,15 @@ public class ReactiveApplication {
 		SpringApplication.run(ReactiveApplication.class, args);
 	}
 
-/*	@Bean
+/*
+	// todo
+	@Bean
 	RouterFunction<?> router(PersonHandler handler) {
 		return
 				route(GET("/persons"), handler::all)
 						.andRoute(GET("/persons/{id}"), handler::byId);
-	}*/
+	}
+	*/
 
 	@Bean
 	CommandLineRunner init(PersonRepository personRepository) {
@@ -117,10 +120,11 @@ class SseController {
 	}
 
 	@GetMapping("/sse/person")
-	Flux<Person> person() {
+	Flux<ServerSentEvent<Person>> person() {
 		return Flux
 				.interval(Duration.ofSeconds(1))
-				.map(l -> randomPerson());
+				.map(l -> randomPerson())
+				.map(person -> ServerSentEvent.builder(person).build());
 	}
 
 	@GetMapping("/sse/event")
