@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-reactivestreams</artifactId>
-            <version>${mongodb-driver-reactivestreams.version}</version>
+            <version>1.3.0</version>
         </dependency>
 
         <dependency>
