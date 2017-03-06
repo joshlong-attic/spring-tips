@@ -1,5 +1,7 @@
 package com.example;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,6 +25,8 @@ import java.io.File;
 @RestController
 public class ReactiveSseApplication {
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	@Bean
 	SubscribableChannel channel() {
 		return MessageChannels.publishSubscribe().get();
@@ -30,7 +34,6 @@ public class ReactiveSseApplication {
 
 	@Bean
 	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file) throws Throwable {
-
 		return IntegrationFlows
 				.from(Files
 						.inboundAdapter(file)
@@ -45,6 +48,7 @@ public class ReactiveSseApplication {
 		SubscribableChannel channel = channel();
 		return Flux
 				.create(unsafeSink -> {
+					log.info("creating a Flux<String> for " + name + ".");
 					FluxSink<String> sink = unsafeSink.serialize();
 					MessageHandler messageHandler =
 							message -> sink.serialize().next(String.class.cast(message.getPayload()));
