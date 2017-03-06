@@ -45,13 +45,13 @@ public class ReactiveSseApplication {
 
 	@GetMapping(value = "/files/{name}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	Flux<String> files(@PathVariable String name) {
+		log.info("creating SSE for " + name + ".");
 		SubscribableChannel channel = channel();
 		return Flux
 				.create(unsafeSink -> {
-					log.info("creating a Flux<String> for " + name + ".");
 					FluxSink<String> sink = unsafeSink.serialize();
 					MessageHandler messageHandler =
-							message -> sink.serialize().next(String.class.cast(message.getPayload()));
+							message -> sink.next(String.class.cast(message.getPayload()));
 					sink.setCancellation(() -> channel.unsubscribe(messageHandler));
 					channel.subscribe(messageHandler);
 				});

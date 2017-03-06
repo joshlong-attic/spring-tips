@@ -1,13 +1,16 @@
 package com.example;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.file.Files;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,19 +25,24 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 public class RegularSseApplication {
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	private final Map<String, SseEmitter> sseEmitters = new ConcurrentHashMap<>();
 
 	@Bean
-	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file)
-			throws Throwable {
+	SubscribableChannel channel() {
+		return MessageChannels.publishSubscribe().get();
+	}
 
+	@Bean
+	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file) throws Throwable {
 		return IntegrationFlows
 				.from(Files
 						.inboundAdapter(file)
 						.autoCreateDirectory(true), c -> c.poller(ps -> ps.fixedRate(1000)))
 				.transform(File.class, File::getAbsolutePath)
-				.handle(String.class, (s, map) -> {
-					notifyFile(s);
+				.handle(String.class, (path, map) -> {
+					notifyFile(path);
 					return null;
 				})
 				.get();
@@ -42,19 +50,21 @@ public class RegularSseApplication {
 
 	@GetMapping("/files/{name}")
 	SseEmitter files(@PathVariable String name) {
-		SseEmitter sse = new SseEmitter(60 * 1000L);
-		this.sseEmitters.put(name, sse);
-		return sse;
+		log.info("creating SSE for " + name + ".");
+		this.sseEmitters.put(name, new SseEmitter(60 * 1000 * 1000L));
+		return this.sseEmitters.get(name);
 	}
 
 	private void notifyFile(String path) {
-		this.sseEmitters.forEach((String k, SseEmitter sse) -> {
-			try {
-				sse.send(path, MediaType.APPLICATION_JSON);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		});
+		this.sseEmitters.values().forEach(
+				sse -> {
+					try {
+						sse.send(path);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+		);
 	}
 
 	public static void main(String[] args) {
