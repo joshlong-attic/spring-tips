@@ -8,9 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.file.Files;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,11 +26,6 @@ public class RegularSseApplication {
 	private final Log log = LogFactory.getLog(getClass());
 
 	private final Map<String, SseEmitter> sseEmitters = new ConcurrentHashMap<>();
-
-	@Bean
-	SubscribableChannel channel() {
-		return MessageChannels.publishSubscribe().get();
-	}
 
 	@Bean
 	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file) throws Throwable {
