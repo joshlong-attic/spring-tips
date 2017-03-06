@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 import java.io.File;
 
@@ -43,7 +44,8 @@ public class ReactiveSseApplication {
 	Flux<String> files(@PathVariable String name) {
 		SubscribableChannel channel = channel();
 		return Flux
-				.create(sink -> {
+				.create(unsafeSink -> {
+					FluxSink<String> sink = unsafeSink.serialize();
 					MessageHandler messageHandler =
 							message -> sink.serialize().next(String.class.cast(message.getPayload()));
 					sink.setCancellation(() -> channel.unsubscribe(messageHandler));
