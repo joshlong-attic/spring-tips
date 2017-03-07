@@ -1,7 +1,5 @@
 package com.example;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,36 +23,28 @@ import java.io.File;
 @RestController
 public class ReactiveSseApplication {
 
-	private final Log log = LogFactory.getLog(getClass());
-
 	@Bean
-	SubscribableChannel channel() {
+	SubscribableChannel filesChannel() {
 		return MessageChannels.publishSubscribe().get();
 	}
 
 	@Bean
-	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file) throws Throwable {
-		return IntegrationFlows
-				.from(Files
-						.inboundAdapter(file)
-						.autoCreateDirectory(true), c -> c.poller(ps -> ps.fixedRate(1000)))
+	IntegrationFlow integrationFlow(@Value("${input-dir:file://${HOME}/Desktop/in}") File in) {
+		return IntegrationFlows.from(Files.inboundAdapter(in).autoCreateDirectory(true),
+				poller -> poller.poller(spec -> spec.fixedRate(1000L)))
 				.transform(File.class, File::getAbsolutePath)
-				.channel(channel())
+				.channel(filesChannel())
 				.get();
 	}
 
 	@GetMapping(value = "/files/{name}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	Flux<String> files(@PathVariable String name) {
-		log.info("creating SSE for " + name + ".");
-		SubscribableChannel channel = channel();
-		return Flux
-				.create(unsafeSink -> {
-					FluxSink<String> sink = unsafeSink.serialize();
-					MessageHandler messageHandler =
-							message -> sink.next(String.class.cast(message.getPayload()));
-					sink.setCancellation(() -> channel.unsubscribe(messageHandler));
-					channel.subscribe(messageHandler);
-				});
+		return Flux.create(sink -> {
+			FluxSink<String> serialize = sink.serialize();
+			MessageHandler handler = msg -> serialize.next(String.class.cast(msg.getPayload()));
+			serialize.setCancellation(() -> filesChannel().unsubscribe(handler));
+			filesChannel().subscribe(handler);
+		});
 	}
 
 	public static void main(String[] args) {

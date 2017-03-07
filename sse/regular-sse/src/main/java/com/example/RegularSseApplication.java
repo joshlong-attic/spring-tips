@@ -1,7 +1,5 @@
 package com.example;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,41 +21,33 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 public class RegularSseApplication {
 
-	private final Log log = LogFactory.getLog(getClass());
 
-	private final Map<String, SseEmitter> sseEmitters = new ConcurrentHashMap<>();
+	private final Map<String, SseEmitter> sses = new ConcurrentHashMap<>();
 
 	@Bean
-	IntegrationFlow inbound(@Value("${input:file://${HOME}/Desktop/in}") File file) throws Throwable {
-		return IntegrationFlows
-				.from(Files
-						.inboundAdapter(file)
-						.autoCreateDirectory(true), c -> c.poller(ps -> ps.fixedRate(1000)))
+	IntegrationFlow inboundFlow ( @Value("${input-dir:file://${HOME}/Desktop/in}") File in){
+		return IntegrationFlows.from(Files.inboundAdapter( in).autoCreateDirectory(true),
+				poller -> poller.poller(spec -> spec.fixedRate(1000L)))
 				.transform(File.class, File::getAbsolutePath)
 				.handle(String.class, (path, map) -> {
-					notifyFile(path);
-					return null;
+					sses.forEach((k, sse) -> {
+						try {
+							sse.send(path);
+						}
+						catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+					});
+					return null ;
 				})
 				.get();
 	}
 
 	@GetMapping("/files/{name}")
 	SseEmitter files(@PathVariable String name) {
-		log.info("creating SSE for " + name + ".");
-		this.sseEmitters.put(name, new SseEmitter(60 * 1000 * 1000L));
-		return this.sseEmitters.get(name);
-	}
-
-	private void notifyFile(String path) {
-		this.sseEmitters.values().forEach(
-				sse -> {
-					try {
-						sse.send(path);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-		);
+		SseEmitter sseEmitter = new SseEmitter(60 * 1000L);
+		sses.put(name, sseEmitter);
+		return sseEmitter;
 	}
 
 	public static void main(String[] args) {
