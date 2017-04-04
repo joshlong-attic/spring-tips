@@ -12,5 +12,7 @@ public class MicroservicesDashboardApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MicroservicesDashboardApplication.class, args);
+		String foo = "sddasd";
+		foo.charAt(2);
 	}
 }

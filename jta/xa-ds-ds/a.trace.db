@@ -23,3 +23,6 @@ org.h2.jdbc.JdbcSQLException: Database is already closed (to disable automatic c
 	at org.springframework.context.support.AbstractApplicationContext.destroyBeans(AbstractApplicationContext.java:1033)
 	at org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1009)
 	at org.springframework.context.support.AbstractApplicationContext$2.run(AbstractApplicationContext.java:928)
+2017-03-31 06:24:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "PET" already exists; SQL statement:
+create TABLE PET( id VARCHAR not null UNIQUE , nickname VARCHAR not null ) [42101-193]
