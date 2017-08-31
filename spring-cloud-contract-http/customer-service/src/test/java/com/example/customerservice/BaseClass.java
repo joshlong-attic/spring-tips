@@ -14,7 +14,7 @@ import java.util.Arrays;
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
-@SpringBootTest(classes = CustomerServiceApplication.class)
+@SpringBootTest (classes = CustomerServiceApplication.class)
 @RunWith(SpringRunner.class)
 public class BaseClass {
 
@@ -26,10 +26,10 @@ public class BaseClass {
 
     @Before
     public void before() {
-        RestAssuredMockMvc.standaloneSetup(this.customerRestController);
-
         Mockito.when(this.customerRepository.findAll())
-                .thenReturn(Arrays.asList(new Customer(1L, "Foo"), new Customer(2L, "Bar")));
+                .thenReturn(Arrays.asList(new Customer(1L, "Jane"), new Customer(2L, "Bob")));
+
+        RestAssuredMockMvc.standaloneSetup(this.customerRestController);
 
     }
 }

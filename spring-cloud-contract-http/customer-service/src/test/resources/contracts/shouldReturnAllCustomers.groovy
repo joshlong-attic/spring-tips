@@ -3,23 +3,16 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 
 Contract.make {
-
-    description "return all the customers"
-
+    description "should return all customers"
     request {
-        method GET()
-        headers {
-            header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-        }
         url "/customers"
+        method GET()
     }
-
     response {
         status 200
         headers {
             header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
         }
-        body([[id: 1L, name: "Foo"], [id: 2L, name: "Bar"]])
+        body([[id: 1L, name: "Jane"], [id: 2, name: "Bob"]])
     }
-
 }

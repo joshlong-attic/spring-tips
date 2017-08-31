@@ -10,5 +10,3 @@ public class CustomerClientApplication {
 		SpringApplication.run(CustomerClientApplication.class, args);
 	}
 }
-
-
