@@ -28,7 +28,7 @@ class Application {
       val value: Flux[Customer] =
         repository
           .deleteAll()
-          .thenMany(Flux.just("Jane", "Dave", "Viktor", "Juergen"))
+          .thenMany(Flux.just("Juergen", "Jane", "Mhadura", "Dave", "Viktor", "Roland"))
           .map({ n => Customer(null, n) })
 
       repository.saveAll(value).subscribe({ it => println(it) })
@@ -39,6 +39,7 @@ class Application {
 object Application extends App {
   SpringApplication.run(classOf[Application], args: _*)
 }
+
 
 @Document
 case class Customer(@Id @BeanProperty var id: String, @BeanProperty var name: String)
@@ -51,16 +52,16 @@ class FunctionalReactiveConfiguration(val customerRepository: CustomerRepository
   @Bean
   def routes(): RouterFunction[_] =
     route(GET("/customers"),
-        (_) => ServerResponse.ok().body(customerRepository.findAll(), classOf[Customer]))
-    .andRoute(GET("/customers/{id}"),
+      (_) => ServerResponse.ok().body(customerRepository.findAll(), classOf[Customer]))
+      .andRoute(GET("/customers/{id}"),
         (request) => ServerResponse.ok().body(customerRepository.findById(request.pathVariable("id")), classOf[Customer]))
 }
 
 /*
-
 @RestController
 class SimpleRestController(val customerRepository: CustomerRepository) {
 
   @GetMapping(Array("/customers"))
   def customers = customerRepository.findAll()
-}*/
+}
+*/
