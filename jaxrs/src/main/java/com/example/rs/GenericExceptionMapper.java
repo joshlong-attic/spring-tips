@@ -15,7 +15,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable exception) {
-        log.error("error! " + exception.getMessage() + ".");
+        log.error("error!", exception);
         return Response
                 .serverError()
                 .entity(exception.getMessage())
