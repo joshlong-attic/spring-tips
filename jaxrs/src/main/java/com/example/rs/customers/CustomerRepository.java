@@ -1,5 +1,4 @@
-package com.example.jaxrs;
-
+package com.example.rs.customers;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

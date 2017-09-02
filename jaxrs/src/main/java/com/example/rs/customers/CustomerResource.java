@@ -1,7 +1,6 @@
-package com.example.jaxrs;
+package com.example.rs.customers;
 
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,14 +11,13 @@ import javax.ws.rs.core.Response;
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
-@Component
 @Path("/customers")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public class CustomerResource {
 
     private final CustomerRepository customerRepository;
 
-    CustomerResource(CustomerRepository customerRepository) {
+    public CustomerResource(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
 
@@ -32,7 +30,9 @@ public class CustomerResource {
     }
 
     @GET
-    public Response all() {
-        return Response.ok(this.customerRepository.findAll()).build();
+    public Response all() throws Exception {
+        return Response
+                .ok(this.customerRepository.findAll())
+                .build();
     }
 }

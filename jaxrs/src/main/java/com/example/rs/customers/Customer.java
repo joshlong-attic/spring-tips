@@ -1,4 +1,4 @@
-package com.example.jaxrs;
+package com.example.rs.customers;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,15 +11,15 @@ import javax.persistence.Id;
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
+@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class Customer {
 
     @Id
     @GeneratedValue
     private Long id;
-    private String name;
 
+    private String name;
 }
