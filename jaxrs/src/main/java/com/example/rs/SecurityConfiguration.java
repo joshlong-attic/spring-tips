@@ -26,7 +26,7 @@ public class SecurityConfiguration {
         return new InMemoryUserDetailsManager(details);
     }
 
-    private UserDetails user(String u, String pw, String... authorities) {
+    private static UserDetails user(String u, String pw, String... authorities) {
         return User.withUsername(u).password(pw).authorities(authorities).build();
     }
 
