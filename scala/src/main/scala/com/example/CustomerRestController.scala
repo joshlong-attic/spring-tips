@@ -1,6 +1,6 @@
 package com.example
 
-import org.springframework.boot.ApplicationArguments
+import org.springframework.boot.{ApplicationArguments, ApplicationRunner}
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -29,15 +29,16 @@ trait CustomerRepository extends ReactiveMongoRepository[Customer, java.lang.Str
 class CustomerConfiguration {
 
   @Bean
-  def init(repository: CustomerRepository) = (args: ApplicationArguments) => {
-    val value: Flux[Customer] =
-      repository
-        .deleteAll()
-        .thenMany(Flux.just("Juergen", "Jane", "Mhadura", "Dave", "Viktor", "Roland"))
-        .map((n: String) => Customer(null, n))
+  def init(repository: CustomerRepository): ApplicationRunner =
+    (args: ApplicationArguments) => {
+      val value: Flux[Customer] =
+        repository
+          .deleteAll()
+          .thenMany(Flux.just("Juergen", "Jane", "Mhadura", "Dave", "Viktor", "Roland"))
+          .map((n: String) => Customer(null, n))
 
-    repository.saveAll(value).subscribe({ it => println(it) })
-  }
+      repository.saveAll(value).subscribe({ it => println(it) })
+    }
 }
 
 /*
