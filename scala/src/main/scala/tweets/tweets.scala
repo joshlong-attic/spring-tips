@@ -23,6 +23,8 @@ import scala.beans.BeanProperty
 import scala.collection.JavaConverters
 
 /**
+  * This example borrows from the Akka Streams documentation.
+  *
   * @author <a href="josh@joshlong.com">Josh Long</a>
   */
 @SpringBootApplication
@@ -57,8 +59,8 @@ class TweetService(tweetRepository: TweetRepository, materializer: ActorMaterial
         .map(x => x.name.toLowerCase()) // Convert all hashtags to upper case
         .map(x => HashTag(x)) // convert them to a HashTag
         .runWith(Sink.asPublisher(true)) { // finally convert the whole thing into a Reactive Streams publisher
-          materializer
-        }
+        materializer
+      }
     Flux.from(akkaStreamsPublisher)
   }
 }
