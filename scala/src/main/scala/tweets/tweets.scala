@@ -12,9 +12,11 @@ import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
-import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.{GetMapping, RequestMapping, RestController}
+import org.springframework.stereotype.{Component, Service}
+import org.springframework.web.reactive.function.server.RequestPredicates._
+import org.springframework.web.reactive.function.server.RouterFunction
+import org.springframework.web.reactive.function.server.RouterFunctions.route
+import org.springframework.web.reactive.function.server.ServerResponse._
 import reactor.core.publisher.Flux
 
 import scala.beans.BeanProperty
@@ -30,7 +32,6 @@ object Application extends App {
   SpringApplication.run(classOf[Application], args: _*)
 }
 
-
 @Configuration
 class AkkaConfiguration {
 
@@ -41,17 +42,12 @@ class AkkaConfiguration {
   def materializer(actorSystem: ActorSystem): ActorMaterializer = ActorMaterializer.create(actorSystem)
 }
 
-@RestController
-@RequestMapping(path = Array("/tweets"), produces = Array(MediaType.APPLICATION_JSON_UTF8_VALUE))
-class TweetRestController(tweetRepository: TweetRepository,
-                          materializer: ActorMaterializer) {
+@Service
+class TweetService(tweetRepository: TweetRepository, materializer: ActorMaterializer) {
 
-  @GetMapping
-  def tweets: Publisher[Tweet] = tweetRepository.findAll()
+  def tweets(): Publisher[Tweet] = tweetRepository.findAll()
 
-  @GetMapping(Array("/unique-hashtags"))
   def uniqueHashTags(): Publisher[HashTag] = {
-
     val src: Source[Tweet, NotUsed] = Source.fromPublisher(tweetRepository.findAll())
     val akkaStreamsPublisher =
       src
@@ -59,13 +55,34 @@ class TweetRestController(tweetRepository: TweetRepository,
         .reduce((a, b) => a ++ b) // ... and reduce them to a single set, removing duplicates across all tweets
         .mapConcat(identity) // Flatten the stream of tweets to a stream of hashtags
         .map(x => x.name.toLowerCase()) // Convert all hashtags to upper case
-        .map(x => HashTag(x))
-        .runWith(Sink.asPublisher(true)) {
+        .map(x => HashTag(x)) // convert them to a HashTag
+        .runWith(Sink.asPublisher(true)) { // finally convert the whole thing into a Reactive Streams publisher
           materializer
         }
     Flux.from(akkaStreamsPublisher)
   }
 }
+
+@Configuration
+class WebConfiguration(tweetService: TweetService) {
+
+  @Bean
+  def routes(): RouterFunction[_] =
+    route(GET("/tweets"), request => ok().body(tweetService.tweets(), classOf[Tweet]))
+      .andRoute(GET("/tweets/{id}"), request => ok().body(tweetService.uniqueHashTags(), classOf[HashTag]))
+
+}
+
+/*@RestController
+@RequestMapping(path = Array("/tweets"), produces = Array(MediaType.APPLICATION_JSON_UTF8_VALUE))
+class TweetRestController(tweetService: TweetService) {
+
+  @GetMapping
+  def tweets: Publisher[Tweet] = tweetService.tweets()
+
+  @GetMapping(Array("/unique-hashtags"))
+  def uniqueHashTags(): Publisher[HashTag] = tweetService.uniqueHashTags()
+}*/
 
 @Component
 class TweetInitializer(tweetRepository: TweetRepository) extends ApplicationRunner {
