@@ -31,12 +31,12 @@ public class JerseyConfiguration {
             return proxy(sc::getAuthentication, Authentication.class);
         }
 
-        private <T> T proxy(ObjectFactory<T> oft, Class<T> ct) {
+        private <T> T proxy(ObjectFactory<T> objectFactory, Class<T> ct) {
             ProxyFactoryBean pfb = new ProxyFactoryBean();
             pfb.addAdvice((MethodInterceptor) methodInvocation -> {
-                T t = oft.getObject();
+                T delegatedObject = objectFactory.getObject();
                 Method method = methodInvocation.getMethod();
-                return method.invoke(t, methodInvocation.getArguments());
+                return method.invoke(delegatedObject, methodInvocation.getArguments());
             });
             pfb.addInterface(ct);
             return ct.cast(pfb.getObject());

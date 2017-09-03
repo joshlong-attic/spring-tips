@@ -27,25 +27,16 @@ public class CustomerResource {
         this.customerRepository = customerRepository;
     }
 
-
     @GET
     @Path("/{id}")
     public Response byId(@PathParam("id") Long id) throws CustomerNotFoundException {
-
         log.info(currentAuthentication.getName() + " was here.");
-
-        Customer byId = this.customerRepository
-                .findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
-        return Response
-                .ok(byId)
-                .build();
+        Customer byId = this.customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
+        return Response.ok(byId).build();
     }
 
     @GET
     public Response all() throws Exception {
-        return Response
-                .ok(this.customerRepository.findAll())
-                .build();
+        return Response.ok(this.customerRepository.findAll()).build();
     }
 }
