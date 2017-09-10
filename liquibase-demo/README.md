@@ -1,2 +1,0 @@
-# liquibase-demo
-liquibase-demo
